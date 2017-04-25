@@ -14,6 +14,15 @@ __date__ = "Apr, 25, 2017"
   4) Generate formatted output CSV
 """
 
+configfile: "trinetx/trinetx.params.yaml"
+
+rule target:
+  input:
+    expand("analysis/input/{sample}.{token}.csv", sample = config["sample"],
+            token = ["filtered", "original"]),
+    "analysis/annotation/cosmic.ids.txt", 
+    "analysis/annotation/rs.ids.txt"
+
 rule subset_csv:
   input:
     inputCSV = "{sample}.csv"
@@ -29,7 +38,7 @@ rule subset_csv:
 
 rule fetch_cosmic_ids:
   input:
-    inputCSV = "{sample}.csv"
+    inputCSV = "{sample}.csv".format(sample = config["sample"])
   output:
     cosmicIDs = "analysis/annotation/cosmic.ids.txt"
   shell:
@@ -38,7 +47,7 @@ rule fetch_cosmic_ids:
 
 rule fetch_rs_ids:
   input:
-    inputCSV = "{sample}.csv"
+    inputCSV = "{sample}.csv".format(sample = config["sample"])
   output:
     rsIDs = "analysis/annotation/rs.ids.txt"
   shell:
