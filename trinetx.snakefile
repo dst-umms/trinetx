@@ -18,6 +18,7 @@ configfile: "trinetx/trinetx.params.yaml"
 
 rule target:
   input:
+    "analysis/input/{sample}.filtered.csv".format(sample = config["sample"]),
     "analysis/annotation/variants.annot.format.csv"
 
 rule subset_csv:
