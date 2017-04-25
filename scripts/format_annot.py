@@ -17,7 +17,7 @@ import sys
 def formatDB(dbTemp):
   db = pd.DataFrame()
   db[["id", "nuc_change"]] = dbTemp[["query", "_id"]][dbTemp["notfound"] != True]
-  db["aa_change"] = ['p.' + dbTemp["dbnsfp.aa.ref"][index] + dbTemp["dbnsfp.aa.pos"][index] + dbTemp["dbnsfp.aa.alt"][index] \
+  db["aa_change"] = [formatAminoChange(dbTemp["dbnsfp.aa.ref"][index], dbTemp["dbnsfp.aa.alt"][index], dbTemp["dbnsfp.aa.pos"][index]) \
                       if pd.notnull(dbTemp["dbnsfp.aa.ref"][index]) else getAminoChange(dbTemp["dbnsfp.aa"][index]) \
                       for index in dbTemp[dbTemp["notfound"] != True].index]
   db["gene"] = [dbTemp["clinvar.gene.symbol"][index] if pd.notnull(dbTemp["clinvar.gene.symbol"][index]) \
@@ -25,6 +25,15 @@ def formatDB(dbTemp):
   db["desc"] = [dbTemp["dbnsfp.clinvar.trait"][index] if pd.notnull(dbTemp["dbnsfp.clinvar.trait"][index]) \
                 else '-' for index in dbTemp[dbTemp["notfound"] != True].index]
   return db
+
+def formatAminoChange(ref, alt, pos):
+  pos = eval(pos)
+  if isinstance(pos, int):
+    return 'p.' + ref + str(pos) + alt
+  else:
+    vals = ['p.' + ref + str(curPos) + alt 
+          for curPos in sorted({int(x) for x in pos})] 
+    return ";".join(vals)
 
 def getAminoChange(val):
   try:
