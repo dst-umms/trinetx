@@ -18,10 +18,7 @@ configfile: "trinetx/trinetx.params.yaml"
 
 rule target:
   input:
-    expand("analysis/input/{sample}.{token}.csv", sample = config["sample"],
-            token = ["filtered", "original"]),
-    "analysis/annotation/cosmic.ids.txt", 
-    "analysis/annotation/rs.ids.txt"
+    "analysis/annotation/variants.annot.format.csv"
 
 rule subset_csv:
   input:
@@ -53,5 +50,31 @@ rule fetch_rs_ids:
   shell:
     # 36 - Db_snp #also called rsid
     "cut -f 36 -d \",\" {input.inputCSV} | grep -i rs 1>{output.rsIDs} "
+
+rule fetch_variant_annotation:
+  input:
+    cosmicIDs = "analysis/annotation/cosmic.ids.txt",
+    rsIDs = "analysis/annotation/rs.ids.txt"
+  output:
+    annotFile = "analysis/annotation/variants.annot.csv"
+  shell:
+    "cat {input.cosmicIDs} {input.rsIDs} | "
+    "python trinetx/scripts/variant_annot.py {output.annotFile} "
+
+
+rule format_variant_annotation:
+  input:
+    annotFile = "analysis/annotation/variants.annot.csv"
+  output:
+    formattedFile = "analysis/annotation/variants.annot.format.csv"
+  shell:
+    "python trinetx/scripts/format_annot.py {input.annotFile} {output.formattedFile} "
+
+
+
+
+
+
+
 
 

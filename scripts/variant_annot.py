@@ -35,4 +35,4 @@ def getIDs():
 if __name__ == "__main__":
   ids = getIDs() #returns a list of ids
   df = getSNPannot(ids)
-  df.to_csv("variants.csv")
+  df.to_csv(sys.argv[1])
