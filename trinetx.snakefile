@@ -18,8 +18,7 @@ configfile: "trinetx/trinetx.params.yaml"
 
 rule target:
   input:
-    "analysis/input/{sample}.filtered.csv".format(sample = config["sample"]),
-    "analysis/annotation/variants.annot.format.csv"
+    "analysis/trinetx/{sample}.trinetx.csv".format(sample = config["sample"]),
 
 rule subset_csv:
   input:
@@ -72,10 +71,15 @@ rule format_variant_annotation:
     "python trinetx/scripts/format_annot.py {input.annotFile} {output.formattedFile} "
 
 
-
-
-
-
-
-
+rule generate_trinetx_csv:
+  input:
+    formattedAnnotFile = "analysis/annotation/variants.annot.format.csv",
+    filteredCSV = "analysis/input/{sample}.filtered.csv".format(sample = config["sample"])
+  output:
+    trinetxCSV = "analysis/trinetx/{sample}.trinetx.csv",
+    trinetxLog = "analysis/trinetx/{sample}.trinetx.log"
+  shell:
+    "perl trinetx/scripts/generate_trinetx_supported_csv.pl "
+    "{input.filteredCSV} {input.formattedAnnotFile} "
+    "1>{output.trinetxCSV} 2>{output.trinetxLog} "
 
