@@ -82,7 +82,8 @@ sub process_info {
   }
   else {
     my @aa_info = split(";", $aa_change);
-    $info = [$gene, $nuc_change, \@aa_info];
+    my @gene_info = split(";", $gene);
+    $info = [$gene_info[0], $nuc_change, \@aa_info];
   } 
   return $info;   
 }

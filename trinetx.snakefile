@@ -18,7 +18,8 @@ configfile: "trinetx/trinetx.params.yaml"
 
 rule target:
   input:
-    "analysis/trinetx/{sample}.trinetx.csv".format(sample = config["sample"]),
+    "analysis/trinetx/{sample}.clinvar.csv".format(sample = config["sample"]),
+    "analysis/trinetx/{sample}.hgvs.csv".format(sample = config["sample"])
 
 rule subset_csv:
   input:
@@ -37,7 +38,7 @@ rule fetch_cosmic_ids:
   input:
     inputCSV = "{sample}.csv".format(sample = config["sample"])
   output:
-    cosmicIDs = "analysis/annotation/cosmic.ids.txt"
+    cosmicIDs = "analysis/annotation/{sample}.cosmic.ids.txt"
   shell:
     # 35 - COSMIC ID
     "cut -f 35 -d \",\" {input.inputCSV} | grep -i cosm 1>{output.cosmicIDs} "
@@ -46,17 +47,17 @@ rule fetch_rs_ids:
   input:
     inputCSV = "{sample}.csv".format(sample = config["sample"])
   output:
-    rsIDs = "analysis/annotation/rs.ids.txt"
+    rsIDs = "analysis/annotation/{sample}.rs.ids.txt"
   shell:
     # 36 - Db_snp #also called rsid
     "cut -f 36 -d \",\" {input.inputCSV} | grep -i rs 1>{output.rsIDs} "
 
 rule fetch_variant_annotation:
   input:
-    cosmicIDs = "analysis/annotation/cosmic.ids.txt",
-    rsIDs = "analysis/annotation/rs.ids.txt"
+    cosmicIDs = "analysis/annotation/{sample}.cosmic.ids.txt".format(sample = config["sample"]),
+    rsIDs = "analysis/annotation/{sample}.rs.ids.txt".format(sample = config["sample"])
   output:
-    annotFile = "analysis/annotation/variants.annot.csv"
+    annotFile = "analysis/annotation/{sample}.clinvar_variants.csv"
   shell:
     "cat {input.cosmicIDs} {input.rsIDs} | "
     "python trinetx/scripts/variant_annot.py {output.annotFile} "
@@ -64,22 +65,51 @@ rule fetch_variant_annotation:
 
 rule format_variant_annotation:
   input:
-    annotFile = "analysis/annotation/variants.annot.csv"
+    annotFile = "analysis/annotation/{sample}.clinvar_variants.csv".format(sample = config["sample"])
   output:
-    formattedFile = "analysis/annotation/variants.annot.format.csv"
+    formattedFile = "analysis/annotation/{sample}.clinvar_variants.format.csv"
   shell:
     "python trinetx/scripts/format_annot.py {input.annotFile} {output.formattedFile} "
 
 
-rule generate_trinetx_csv:
+rule trinetx_csv:
   input:
-    formattedAnnotFile = "analysis/annotation/variants.annot.format.csv",
+    formattedAnnotFile = "analysis/annotation/{sample}.clinvar_variants.format.csv".format(sample = config["sample"]),
     filteredCSV = "analysis/input/{sample}.filtered.csv".format(sample = config["sample"])
   output:
-    trinetxCSV = "analysis/trinetx/{sample}.trinetx.csv",
-    trinetxLog = "analysis/trinetx/{sample}.trinetx.log"
+    trinetxCSV = "analysis/trinetx/{sample}.clinvar.csv",
+    trinetxLog = "analysis/trinetx/{sample}.clinvar.log"
   shell:
     "perl trinetx/scripts/generate_trinetx_supported_csv.pl "
     "{input.filteredCSV} {input.formattedAnnotFile} "
     "1>{output.trinetxCSV} 2>{output.trinetxLog} "
 
+rule generate_hgvs_annotation:
+  input:
+    cosmicIDs = "analysis/annotation/{sample}.cosmic.ids.txt".format(sample = config["sample"]),
+    rsIDs = "analysis/annotation/{sample}.rs.ids.txt".format(sample = config["sample"])
+  output:
+    annotFile = "analysis/annotation/{sample}.hgvs_variants.csv"
+  shell:
+    "cat {input.cosmicIDs} {input.rsIDs} | "
+    "python trinetx/scripts/variant_annot_hgvs.py {output.annotFile} "
+
+rule format_hgvs_annotation:
+  input:
+    hgvsFile = "analysis/annotation/{sample}.hgvs_variants.csv".format(sample = config["sample"])
+  output:
+    formattedHgvsFile = "analysis/annotation/{sample}.hgvs_variants.format.csv"
+  shell:
+    "python trinetx/scripts/format_annot_hgvs.py {input.hgvsFile} {output.formattedHgvsFile} "
+
+rule hgvs_csv:
+  input:
+    formattedHgvsFile = "analysis/annotation/{sample}.hgvs_variants.format.csv".format(sample = config["sample"]),
+    filteredCSV = "analysis/input/{sample}.filtered.csv".format(sample = config["sample"])
+  output:
+    hgvsCSV = "analysis/trinetx/{sample}.hgvs.csv",
+    hgvsLog = "analysis/trinetx/{sample}.hgvs.log"
+  shell:
+    "perl trinetx/scripts/generate_trinetx_supported_csv.pl "
+    "{input.filteredCSV} {input.formattedHgvsFile} "
+    "1>{output.hgvsCSV} 2>{output.hgvsLog} "
