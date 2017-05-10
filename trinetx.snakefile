@@ -75,13 +75,14 @@ rule format_variant_annotation:
 rule trinetx_csv:
   input:
     formattedAnnotFile = "analysis/annotation/{sample}.clinvar_variants.format.csv".format(sample = config["sample"]),
-    filteredCSV = "analysis/input/{sample}.filtered.csv".format(sample = config["sample"])
+    filteredCSV = "analysis/input/{sample}.filtered.csv".format(sample = config["sample"]),
+    gene_sym2name = "trinetx/static/gene_sym2name.csv"
   output:
     trinetxCSV = "analysis/trinetx/{sample}.clinvar.csv",
     trinetxLog = "analysis/trinetx/{sample}.clinvar.log"
   shell:
     "perl trinetx/scripts/generate_trinetx_supported_csv.pl "
-    "{input.filteredCSV} {input.formattedAnnotFile} "
+    "{input.filteredCSV} {input.formattedAnnotFile} {input.gene_sym2name} "
     "1>{output.trinetxCSV} 2>{output.trinetxLog} "
 
 rule generate_hgvs_annotation:
@@ -105,11 +106,12 @@ rule format_hgvs_annotation:
 rule hgvs_csv:
   input:
     formattedHgvsFile = "analysis/annotation/{sample}.hgvs_variants.format.csv".format(sample = config["sample"]),
-    filteredCSV = "analysis/input/{sample}.filtered.csv".format(sample = config["sample"])
+    filteredCSV = "analysis/input/{sample}.filtered.csv".format(sample = config["sample"]),
+    gene_sym2name = "trinetx/static/gene_sym2name.csv"
   output:
     hgvsCSV = "analysis/trinetx/{sample}.hgvs.csv",
     hgvsLog = "analysis/trinetx/{sample}.hgvs.log"
   shell:
     "perl trinetx/scripts/generate_trinetx_supported_csv.pl "
-    "{input.filteredCSV} {input.formattedHgvsFile} "
+    "{input.filteredCSV} {input.formattedHgvsFile} {input.gene_sym2name} "
     "1>{output.hgvsCSV} 2>{output.hgvsLog} "
