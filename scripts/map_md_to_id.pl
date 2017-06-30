@@ -21,8 +21,8 @@ my $options = parse_options();
 my $id_info = get_info($$options{'id_file'}, 0);
 my $db_info = get_info($$options{'db_file'}, 1);
 print_info($id_info, $db_info);
-#print_log($id_info, $$options{'prefix'} . '.id.log');
-#print_log($db_info, $$options{'prefix'} . '.db.log');
+print_log($id_info, $$options{'prefix'} . '.id.log');
+print_log($db_info, $$options{'prefix'} . '.db.log');
 exit $?;
 
 sub parse_options {
@@ -68,8 +68,6 @@ sub print_info {
       $md_formatted = $1 . ':' . $2;
     } elsif($md =~ /(\D\D)(\d\d)[\:\-]+(\d+)/) {
       $md_formatted = $2 . ':' . $1 . sprintf("%06d", $3);
-    } else {
-      print STDERR "INFO: $md\n";
     }
     if($md_formatted and exists $$id{$md_formatted}) {
       $$id{$md_formatted}{'seen'} = 1;
@@ -79,4 +77,15 @@ sub print_info {
       }     
     }
   } 
+}
+
+sub print_log {
+  my($info, $file) = @_;
+  open(OFH, ">$file") or die "Error in writing to the file, $file, $!\n";
+  foreach my $key(keys %$info) {
+    if(not $$info{$key}{'seen'}) {
+      print OFH $key, "\n";
+    }   
+  }
+  close OFH or die "Error in closing the file, $file, $!\n"; 
 }
