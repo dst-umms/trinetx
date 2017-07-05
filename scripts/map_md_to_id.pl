@@ -41,7 +41,7 @@ sub get_info {
   my($file, $flag) = @_;
   my $info = {};
   open(FH, "<$file") or die "Error in opening the file, $file, $!\n";
-  if($flag) { $DB_HEADER = <FH>; } else {  my $id_header = <FH>; }
+  if($flag) { $DB_HEADER = <FH>; $DB_HEADER =~ s///g; } else {  my $id_header = <FH>; }
   while(my $line = <FH>) {
     chomp $line;
     my($md, $rest) = (undef, undef);
@@ -51,8 +51,14 @@ sub get_info {
     } else {
       my($md_temp, @values) = split(",", $line);
       ($md, $rest) = ($md_temp, join(",",@values));
+      if($rest =~ /(\".+?\")(.*)/) {
+        my($p_name, $rest_values) = ($1, $2);
+        $p_name =~ s/,//g;
+        $rest = $p_name . $rest_values;
+      }
     }
     $$info{$md}{'seen'} = 0;
+    $rest =~ s///g; #excel csv files contain this weird character - need to remove this if present
     push @{$$info{$md}{'info'}}, $rest;       
   }
   close FH or die "Error in closing the file, $file, $!\n";
