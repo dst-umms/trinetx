@@ -28,10 +28,10 @@ rule subset_csv:
     outputCSV = "analysis/input/{sample}.filtered.csv",
     inputCSV = "analysis/input/{sample}.original.csv"
   shell:
-    # 1 - UniqueIdentifier, 2 - Cancer Type, 24 - CHROMOSOME,
-    # 25 - CHROMOSOME POSITION, 26 - GENE SYMBOL, 33 - MUTATION CALL, 
-    # 34 - AMINO ACID  CHANGE, 35 - COSMIC ID, 36 - Db_snp
-    "cut -f 1,2,24,25,26,33,34,35,36 -d \",\" {input.inputCSV} 1>{output.outputCSV} "
+    # 1 - UniqueIdentifier, 7 - Cancer Type, 31 - CHROMOSOME,
+    # 32 - CHROMOSOME POSITION, 33 - GENE SYMBOL, 40 - MUTATION CALL, 
+    # 41 - AMINO ACID  CHANGE, 42 - COSMIC ID, 43 - Db_snp
+    "cut -f 1,7,31,32,33,40,41,42,43 -d \",\" {input.inputCSV} 1>{output.outputCSV} "
     "&& cp {input.inputCSV} {output.inputCSV} "
 
 rule fetch_cosmic_ids:
@@ -40,8 +40,8 @@ rule fetch_cosmic_ids:
   output:
     cosmicIDs = "analysis/annotation/{sample}.cosmic.ids.txt"
   shell:
-    # 35 - COSMIC ID
-    "cut -f 35 -d \",\" {input.inputCSV} | grep -i cosm 1>{output.cosmicIDs} "
+    # 42 - COSMIC ID
+    "cut -f 42 -d \",\" {input.inputCSV} | grep -i cosm 1>{output.cosmicIDs} "
 
 rule fetch_rs_ids:
   input:
@@ -49,8 +49,8 @@ rule fetch_rs_ids:
   output:
     rsIDs = "analysis/annotation/{sample}.rs.ids.txt"
   shell:
-    # 36 - Db_snp #also called rsid
-    "cut -f 36 -d \",\" {input.inputCSV} | grep -i rs 1>{output.rsIDs} "
+    # 43 - Db_snp #also called rsid
+    "cut -f 43 -d \",\" {input.inputCSV} | grep -i rs 1>{output.rsIDs} "
 
 rule fetch_variant_annotation:
   input:

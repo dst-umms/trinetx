@@ -26,7 +26,15 @@ sub get_gene_sym2name_info {
   my $header = <FH>;
   while(my $line = <FH>) {
     chomp $line;
-    my($sym, $hgvs, $name) = split(",", $line);
+    my($sym, $name) = (undef, undef);
+    if($line =~ /\"/) {
+      my($cur_sym, $cur_status, $cur_name, $cur_id) = ($line =~ /(.+?),(.+?),\"(.+?)\",(.+)/);
+      $cur_name =~ s/,/;/g;
+      ($sym, $name) = ($cur_sym, $cur_name);
+    } else {
+      my($cur_sym, $cur_status, $cur_name, $cur_id) = split(",", $line);
+      ($sym, $name) = ($cur_sym, $cur_name);
+    }
     $$info{$sym} = $name;
   }
   close FH or die "Error in closing the file, $file, $!\n";
@@ -58,7 +66,8 @@ sub process_data {
   print STDOUT join(",", @$header), "\n";
   while(my $line = <FH>) {
     chomp $line;
-    my($patient_id, $cancer_type) = ($line =~ /^(\d+),(.+?),/);
+    my($patient_id, $cancer_type) = ($line =~ /^(.*?),(.+?),/);
+    print STDERR "WARN: '$line' is being ignored due to lack of patient id\n" and next if not $patient_id;
     my($cosm) = ($line =~ /(COSM\d+)/);
     my($rs) = ($line =~ /(rs\d+)/);
     my $defaults = {
