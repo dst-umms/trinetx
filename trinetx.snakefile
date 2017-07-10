@@ -115,3 +115,13 @@ rule hgvs_csv:
     "perl trinetx/scripts/generate_trinetx_supported_csv.pl "
     "{input.filteredCSV} {input.formattedHgvsFile} {input.gene_sym2name} "
     "1>{output.hgvsCSV} 2>{output.hgvsLog} "
+
+rule final_formatted_file:
+  input:
+    in_csv = "analysis/trinetx/{sample}.clinvar.csv".format(sample = config["sample"])
+  output:
+    out_csv = "UMass_Genomics.csv"
+  shell:
+    "perl trinetx/scripts/final_file.pl "
+    "{input.in_csv} 1>{output.out_csv} "
+
