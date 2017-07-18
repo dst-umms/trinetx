@@ -29,7 +29,7 @@ sub get_gene_sym2name_info {
     my($sym, $name) = (undef, undef);
     if($line =~ /\"/) {
       my($cur_sym, $cur_status, $cur_name, $cur_id) = ($line =~ /(.+?),(.+?),\"(.+?)\",(.+)/);
-      $cur_name =~ s/,/;/g;
+#      $cur_name =~ s/,/;/g;
       ($sym, $name) = ($cur_sym, $cur_name);
     } else {
       my($cur_sym, $cur_status, $cur_name, $cur_id) = split(",", $line);
@@ -49,7 +49,7 @@ sub get_db_info {
   while(my $line = <FH>) {
     chomp $line;
     my @array = split(",", $line);
-    $$info{$array[0]} = $line;
+    $$info{$array[0]} = join("\t", @array);
   }
   close FH or die "Error in clsoing the file, $file, $!\n";
   return $info;
@@ -63,7 +63,7 @@ sub process_data {
               "Test Date", "Sample Site", "Gene Symbol",
               "Gene Name", "Wildtype", "Protein Sequence Variant",
               "Genomic DNA Sequence Variant", "(COSMIC/RS) ID", "Cancer Type"];
-  print STDOUT join(",", @$header), "\n";
+  print STDOUT join("\t", @$header), "\n";
   while(my $line = <FH>) {
     chomp $line;
     my($patient_id, $cancer_type) = ($line =~ /^(.*?),(.+?),/);
@@ -91,7 +91,7 @@ sub process_data {
     }
     if($info) {
       foreach my $aa(@{$$info[2]}) {
-        print STDOUT join(",", (
+        print STDOUT join("\t", (
           $patient_id, $$defaults{$$header[1]}, $$defaults{$$header[2]}, 
           $$defaults{$$header[3]}, $$defaults{$$header[4]}, $$info[0], 
           $$gene_info{$$info[0]}, $$defaults{$$header[7]}, $aa, 
@@ -106,7 +106,7 @@ sub process_data {
 sub process_info {
   my($line) = @_;
   my $info = undef;
-  my($id, $nuc_change, $aa_change, $gene, $desc) = split(",", $line);
+  my($id, $nuc_change, $aa_change, $gene, $desc) = split("\t", $line);
   if($gene eq "-" or $nuc_change eq "-" or $aa_change eq "-") {
     print STDERR "WARN: '$line' is being ignored due to lack of required info.\n";
   }
