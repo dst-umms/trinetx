@@ -125,3 +125,30 @@ rule final_formatted_file:
     "perl trinetx/scripts/final_file.pl "
     "{input.in_csv} 1>{output.out_csv} "
 
+rule generate_report:
+  input:
+    image_file = "data.png"
+  output:
+    "UMass_TriNetX_Genomics_Report.html"
+  run:
+    from snakemake.utils import report
+    from snakemake.report import data_uri
+    sphinx_str = """
+================================
+UMass TrinetX Genomics Overview:
+================================
+
+Background: 
+===========
+
+Data Sciences & Technology (DST), IT, provides and supports patient cohort exploration using Genomics data in addition to clinical data. DST in collaboration with Molecular Diagnostic Laboratories at UMass Memorial Hospital, gathered and curated precision medicine data from patients since 2014 and is provided to medical researchers for research purposes.
+
+This document describes the overall counts of patients with variant information at gene level. 
+
+NOTE: Out of 1174 unique MRNs collected from Mol Dx lab, 157 MRNs are not found in master MRN table collected from hospital.
+
+Following plot represents patient counts at gene level with respect to TriNetX and Mol Dx annotation information. Since, TriNetX variant annotation look up is much more stringent, it is possible and most likely for some variants called by MolDx workflows not present in TriNetX and thus, TriNetX counts will always be either less than or equal to MolDx patient counts for each gene.
+
+"""
+    sphinx_str += "\n\t.. image:: " + data_uri(input.image_file) + "\n\n"
+    report(sphinx_str, output[0], metadata="Data Sciences & Technology, UMMS", **{'Copyrights:':"trinetx/static/dst.png"})
